@@ -1,77 +1,52 @@
-import { SQS } from "aws-sdk";
-import Order from "../services/mongoDb/model/Order";
-import { logger } from "../utils/logger";
-import connectDB from "../services/mongoDb/connection";
-import corsMiddleware from "../middleware/cors";
+const { getSuccessResponse } = require('../utils/success');
+const { getErrorResponse } = require('../utils/error');
+const { SQS } = require('aws-sdk');
+const connectToDatabase = require('../utils/db');
+const OrderModel = require('../models/Order');
+const { logger } = require('../utils/logger');
+
 const sqs = new SQS();
 
-/**
- * Order Service: This service receive an order object and save to database.
- * After save to mongodb it will send an order payload to sqs.
- */
-async function order(event) {
-    let statusCode = 200;
-    let message;
-
-    if (!event.body) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({
-                message: "No body was found",
-            }),
-        };
-    }
+module.exports.main = async (event) => {
 
     try {
-        connectDB();
         const { user, orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice, currency, } = JSON.parse(event.body);
-
-        const order = new Order({
-            orderItems,
-            user,
-            shippingAddress,
-            paymentMethod,
-            itemsPrice,
-            taxPrice,
-            shippingPrice,
-            totalPrice,
-            currency,
-        });
-        // validate cart schema for errors
-        const error = order.validateSync();
-        if (error) {
-            logger.error('Add to cart has an error', {
-                error
+        let result;
+        const dbConnected = await connectToDatabase();
+        if (dbConnected) {
+            const OrderInstance = await OrderModel(dbConnected);
+            const orderDoc = new OrderInstance({
+                orderItems,
+                user,
+                shippingAddress,
+                paymentMethod,
+                itemsPrice,
+                taxPrice,
+                shippingPrice,
+                totalPrice,
+                currency,
             });
-            throw new Error(error);
-        }
-        // save cart to mongodb
-        message = await order.save();
+            result = await orderDoc.save();
 
-        // push cart object to sqs
-        await sqs
-            .sendMessage({
-                QueueUrl: process.env.ORDER_STATUS_QUEUE_URL,
-                MessageBody: JSON.stringify(message),
-                MessageAttributes: {
-                    AttributeName: {
-                        StringValue: "Attribute Value",
-                        DataType: "String",
+            // push cart object to sqs
+            await sqs
+                .sendMessage({
+                    QueueUrl: process.env.ORDER_STATUS_QUEUE_URL,
+                    MessageBody: JSON.stringify(result),
+                    MessageAttributes: {
+                        AttributeName: {
+                            StringValue: "Attribute Value",
+                            DataType: "String",
+                        },
                     },
-                },
-            })
-            .promise();
+                })
+                .promise();
 
+        }
+
+        return getSuccessResponse(result);
     } catch (error) {
-        logger.error(error);
-        message = error;
-        statusCode = 500;
+        logger.error('add to cart has error:', { error });
+        return getErrorResponse(error);
     }
-
-    return {
-        statusCode,
-        body: JSON.stringify(message),
-    };
 };
-
-export const handler = corsMiddleware(order);

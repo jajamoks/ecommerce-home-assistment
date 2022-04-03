@@ -1,6 +1,9 @@
 # ecommerce-home-assistment
 Ecommerce Home Assistment
 
+**How to run:**
+sls deploy --verbose or serverless deploy --verbose
+
 
 **Get Products**
 curl --location --request GET 'https://jifmguoil3.execute-api.ap-southeast-1.amazonaws.com/dev/products?pageNumber=1'

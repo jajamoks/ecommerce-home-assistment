@@ -5,12 +5,13 @@ constructs:
   chargeFlowOrderStatusNotification:
     type: queue
     worker:
-      handler: src/handlers/orderStatusNotification.handler
+      handler: src/handlers/orderStatusNotification.main
+
+package:
+  individually: true
 
 plugins:
-  - serverless-bundle
   - serverless-pseudo-parameters
-  - serverless-offline
   - serverless-lift
 
 provider:
@@ -22,7 +23,7 @@ provider:
 
 functions:
   chargeFlowProductCatalogService:
-    handler: src/handlers/productCatalog.handler
+    handler: src/handlers/productCatalog.main
     events:
       - http:
           method: GET
@@ -32,27 +33,17 @@ functions:
             parameters:
               querystrings:
                 pageNumber: true
-  
+
   chargeFlowSingleProductCatalog:
-    handler: src/handlers/singleProductCatalog.handler
+    handler: src/handlers/singleProductCatalog.main
     events:
       - http:
           method: GET
           path: /product/{id}
           cors: true
 
-  # Note: createProductCatalog service is not part of the exam I just 
-  # add this endpoint so i can add products to db for testing purpose.
-  createProductCatalog:
-    handler: src/handlers/createProductCatalog.handler
-    events:
-      - http:
-          method: POST
-          cors: true
-          path: /products/create
-
   chargeFlowCartService:
-    handler: src/handlers/cart.handler
+    handler: src/handlers/cart.main
     events:
       - http:
           method: POST
@@ -60,7 +51,7 @@ functions:
           path: /cart
 
   chargeFlowOrderService:
-    handler: src/handlers/order.handler
+    handler: src/handlers/order.main
     events:
       - http:
           method: POST

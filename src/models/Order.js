@@ -1,12 +1,12 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const orderSchema = mongoose.Schema(
+const OrderSchema = new mongoose.Schema(
   {
     user: {
-        type: String,
-        required: false,
-        default: 'Ariel Chen' // hardcode for now
-      },
+      type: String,
+      required: false,
+      default: 'John Doe' // hardcode for now
+    },
     orderItems: [
       {
         name: { type: String, required: true },
@@ -37,10 +37,10 @@ const orderSchema = mongoose.Schema(
       email_address: { type: String },
     },
     currency: {
-        type: String,
-        required: true,
-        default: "USD",
-      },
+      type: String,
+      required: true,
+      default: "USD",
+    },
     taxPrice: {
       type: Number,
       required: true,
@@ -78,6 +78,6 @@ const orderSchema = mongoose.Schema(
   }
 );
 
-const Order = mongoose.model('Order', orderSchema);
-
-export default Order;
+module.exports = (conn) => {
+  return conn.model('Order', OrderSchema);
+};

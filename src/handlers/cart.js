@@ -1,56 +1,28 @@
-import Cart from "../services/mongoDb/model/Cart";
-import { logger } from "../utils/logger";
-import connectDB from "../services/mongoDb/connection";
-import corsMiddleware from "../middleware/cors";
+const { getSuccessResponse } = require('../utils/success');
+const { getErrorResponse } = require('../utils/error');
+const connectToDatabase = require('../utils/db');
+const CartModel = require('../models/Cart');
+const { logger } = require('../utils/logger');
 
-/**
- * Cart Service: This service receive an cart event and save to database.
- */
-async function cart(event) {
-    let statusCode = 200;
-    let message;
-
-    if (!event.body) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({
-                message: "No body was found",
-            }),
-        };
-    }
+module.exports.main = async (event) => {
 
     try {
-        connectDB();
         const { user, cartItems, currency } = JSON.parse(event.body);
-
-        const cart = new Cart({
-            currency,
-            user,
-            cartItems,
-        });
-
-        // validate cart schema for errors
-        const error = cart.validateSync();
-        if (error) {
-            logger.error('Add to cart has an error', {
-                error
+        let result;
+        const dbConnected = await connectToDatabase();
+        if (dbConnected) {
+            const CartInstance = await CartModel(dbConnected);
+            const cartDoc = new CartInstance({
+                currency,
+                user,
+                cartItems,
             });
-            throw new Error(error);
+            result = await cartDoc.save();
         }
-        // save cart to mongodb
-        message = await cart.save();
+
+        return getSuccessResponse(result);
     } catch (error) {
-        console.log(error);
-        message = error;
-        statusCode = 500;
+        logger.error('add to cart has error:', { error });
+        return getErrorResponse(error);
     }
-
-    return {
-        statusCode,
-        body: JSON.stringify({
-            message,
-        }),
-    };
 };
-
-export const handler = corsMiddleware(cart);

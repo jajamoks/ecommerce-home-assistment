@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
-const cartSchema = mongoose.Schema(
+const CartSchema = new mongoose.Schema(
     {
         user: {
             type: String,
             required: false,
-            default: 'Ariel Chen' // hardcode for now
-          },
+            default: 'John Doe' // hardcode for now
+        },
         cartItems: [
             {
                 name: { type: String, required: true },
@@ -27,6 +27,6 @@ const cartSchema = mongoose.Schema(
     }
 );
 
-const Cart = mongoose.model('Cart', cartSchema);
-
-export default Cart;
+module.exports = (conn) => {
+    return conn.model('Cart', CartSchema);
+};

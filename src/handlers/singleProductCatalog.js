@@ -1,40 +1,22 @@
-import Product from "../services/mongoDb/model/Product";
-import connectDB from "../services/mongoDb/connection";
-import { logger } from "../utils/logger";
-import corsMiddleware from "../middleware/cors";
+const { getSuccessResponse } = require('../utils/success');
+const { getErrorResponse } = require('../utils/error');
+const connectToDatabase = require('../utils/db');
+const ProductModel = require('../models/Product');
+const { logger } = require('../utils/logger');
 
-/**
- * Single Product Catalog Service: This service list all products from database.
- */
-async function singleProductCatalog(event) {
 
-    let message;
-    let statusCode = 200;
-
+module.exports.main = async (event) => {
     try {
-        connectDB();
+        let result;
         const { id } = event.pathParameters;
-        const product = await Product.findById(id);
-
-        if (product) {
-            message = product;
-        } else {
-            statusCode = 404;
-            message = "Product not found";
+        const dbConnected = await connectToDatabase();
+        if (dbConnected) {
+            const ProductInstance = await ProductModel(dbConnected);
+            result = await ProductInstance.findOne({ _id: id });
         }
-
-    } catch (err) {
-        message = err;
-        statusCode = 500;
-        logger.error('getProduct thrown an error', err);
+        return getSuccessResponse(result);
+    } catch (error) {
+        logger.error('add to cart has error:', { error });
+        return getErrorResponse(error);
     }
-
-    return {
-        statusCode,
-        body: JSON.stringify(message)
-    };
-
-}
-
-export const handler = corsMiddleware(singleProductCatalog);
-
+};

@@ -1,42 +1,30 @@
-import Product from "../services/mongoDb/model/Product";
-import connectDB from "../services/mongoDb/connection";
-import { logger } from "../utils/logger";
-import corsMiddleware from "../middleware/cors";
+const { getSuccessResponse } = require('../utils/success');
+const { getErrorResponse } = require('../utils/error');
+const connectToDatabase = require('../utils/db');
+const ProductModel = require('../models/Product');
+const { logger } = require('../utils/logger');
 
-/**
- * Product Catalog Service: This service list all products from database.
- */
-async function productCatalog(event) {
+module.exports.main = async (event) => {
+    try {
+        let result;
+        const { pageNumber } = event.queryStringParameters;
+        const pageSize = 12; // default
+        const page = Number(pageNumber) || 1; // default 1
 
-  let message;
-  let statusCode = 200;
+        const dbConnected = await connectToDatabase();
+        if (dbConnected) {
+            const ProductInstance = await ProductModel(dbConnected);
+            const countProduct = await ProductInstance.countDocuments({});
+            const products = await ProductInstance.find({})
+                .limit(pageSize)
+                .skip(pageSize * (page - 1));
 
-  try {
-    connectDB();
-    const { pageNumber } = event["queryStringParameters"];
-    const pageSize = 12; // default
-    const page = Number(pageNumber) || 1; // default 1
+            result = { products, page, pages: Math.ceil(countProduct / pageSize) };
+        }
 
-    const countProduct = await Product.countDocuments({});
-    const products = await Product.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
-
-    statusCode = 200;
-    message = { products, page, pages: Math.ceil(countProduct / pageSize) };
-
-  } catch (err) {
-    logger.error('getProducts thrown an error', err);
-    statusCode = 500;
-    message = err;
-  }
-
-  return {
-    statusCode,
-    body: JSON.stringify(message)
-  };
-
-}
-
-export const handler = corsMiddleware(productCatalog);
-
+        return getSuccessResponse(result);
+    } catch (error) {
+        logger.error('add to cart has error:', { error });
+        return getErrorResponse(error);
+    }
+};

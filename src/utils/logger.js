@@ -1,4 +1,4 @@
-import winston from "winston";
+const winston = require("winston");
 const { format } = winston;
 
 const logAppAndVersionNo = winston.format((info) => {
@@ -10,7 +10,7 @@ const logAppAndVersionNo = winston.format((info) => {
 });
 
 // application logger
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
     format: format.combine(
         logAppAndVersionNo(),
         format.timestamp(),
@@ -29,3 +29,5 @@ export const logger = winston.createLogger({
         }),
     ],
 });
+
+module.exports = { logger };

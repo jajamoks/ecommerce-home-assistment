@@ -1,6 +1,6 @@
-import { logger } from "../utils/logger";
+const { logger } = require('../utils/logger');
 
-async function orderStatusNotification(event) {
+module.exports.main = (event) => {
     for (const record of event.Records) {
         const messageAttributes = record.messageAttributes;
         logger.info(
@@ -9,6 +9,4 @@ async function orderStatusNotification(event) {
         );
         logger.info("Message Body: ", record.body);
     }
-}
-
-export const handler = orderStatusNotification;
+};

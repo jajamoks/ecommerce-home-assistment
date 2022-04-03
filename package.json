@@ -1,0 +1,35 @@
+{
+  "name": "ecommerce-home-assistment",
+  "version": "1.0.0",
+  "description": "eCommerce Home Assistment",
+  "author": "Aldrin Mojica <jaja_aldrin@yahoo.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "rewiremock": "^3.14.3",
+    "serverless-bundle": "^1.3.3",
+    "serverless-lift": "^1.1.2",
+    "serverless-offline": "^8.5.0",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "sinon": "^13.0.1",
+    "sinon-chai": "^3.7.0",
+    "webpack": "^4.35.2"
+  },
+  "dependencies": {
+    "@middy/core": "^2.5.7",
+    "@middy/http-cors": "^2.5.7",
+    "aws-sdk": "^2.639.0",
+    "bluebird": "^3.7.2",
+    "http-errors": "^1.7.3",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.2.9",
+    "validator": "^13.7.0",
+    "winston": "^3.6.0"
+  }
+}

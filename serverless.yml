@@ -1,0 +1,70 @@
+service: cflow-shopping-cart
+frameworkVersion: "3"
+
+constructs:
+  chargeFlowOrderStatusNotification:
+    type: queue
+    worker:
+      handler: src/handlers/orderStatusNotification.handler
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+  - serverless-offline
+  - serverless-lift
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+
+functions:
+  chargeFlowProductCatalogService:
+    handler: src/handlers/productCatalog.handler
+    events:
+      - http:
+          method: GET
+          cors: true
+          path: /products
+          request:
+            parameters:
+              querystrings:
+                pageNumber: true
+  
+  chargeFlowSingleProductCatalog:
+    handler: src/handlers/singleProductCatalog.handler
+    events:
+      - http:
+          method: GET
+          path: /product/{id}
+          cors: true
+
+  # Note: createProductCatalog service is not part of the exam I just 
+  # add this endpoint so i can add products to db for testing purpose.
+  createProductCatalog:
+    handler: src/handlers/createProductCatalog.handler
+    events:
+      - http:
+          method: POST
+          cors: true
+          path: /products/create
+
+  chargeFlowCartService:
+    handler: src/handlers/cart.handler
+    events:
+      - http:
+          method: POST
+          cors: true
+          path: /cart
+
+  chargeFlowOrderService:
+    handler: src/handlers/order.handler
+    events:
+      - http:
+          method: POST
+          cors: true
+          path: /order
+    environment:
+      ORDER_STATUS_QUEUE_URL: ${construct:chargeFlowOrderStatusNotification.queueUrl}
